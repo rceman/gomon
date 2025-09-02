@@ -2,15 +2,18 @@
 
 GO Monitoring Service for VM. The service collects CPU and memory usage of the
 host and exposes a `/stats` HTTP endpoint. The endpoint returns the maximum CPU
-percentage and memory usage (in MB) observed over the last 5 minutes, 1 hour and
-24 hours in the following format:
+percentage and memory usage (in MB) observed over the last 1 minute, 5 minutes,
+1 hour and 24 hours in the following format:
 
 ```
 {
-  "cpu": [max5m, max1h, max24h],
-  "mem": [max5m, max1h, max24h]
+  "cpu": [max1m, max5m, max1h, max24h],
+  "mem": [max1m, max5m, max1h, max24h]
 }
 ```
+
+The endpoint accepts an optional `output_format` query parameter. When set to
+`html` it returns a simple table for each VM; otherwise JSON is returned.
 
 Set the polling interval (seconds, decimals allowed) with `READ_TICKER_TIME_SEC` and the server port with
 `STATS_PORT` in the environment. Each instance must define `VM_NAME`.

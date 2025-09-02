@@ -15,8 +15,8 @@ func TestComputeSummary(t *testing.T) {
 	}
 	got := computeSummary(points, now)
 	want := Stats{
-		CPU: [3]float32{10, 50, 90},
-		Mem: [3]uint32{100, 300, 400},
+		CPU: [4]float32{0, 10, 50, 90},
+		Mem: [4]uint32{0, 100, 300, 400},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("computeSummary() = %v, want %v", got, want)

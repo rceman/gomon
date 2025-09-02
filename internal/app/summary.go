@@ -9,8 +9,8 @@ type dataPoint struct {
 }
 
 type Stats struct {
-	CPU [3]float32 `json:"cpu"`
-	Mem [3]uint32  `json:"mem"`
+	CPU [4]float32 `json:"cpu"`
+	Mem [4]uint32  `json:"mem"`
 }
 
 type NodeStats struct {
@@ -22,7 +22,7 @@ func computeSummary(points []dataPoint, now time.Time) Stats {
 	var s Stats
 	for _, p := range points {
 		delta := now.Sub(p.ts)
-		if delta <= 5*time.Minute {
+		if delta <= time.Minute {
 			if p.cpu > s.CPU[0] {
 				s.CPU[0] = p.cpu
 			}
@@ -30,7 +30,7 @@ func computeSummary(points []dataPoint, now time.Time) Stats {
 				s.Mem[0] = p.mem
 			}
 		}
-		if delta <= time.Hour {
+		if delta <= 5*time.Minute {
 			if p.cpu > s.CPU[1] {
 				s.CPU[1] = p.cpu
 			}
@@ -38,12 +38,20 @@ func computeSummary(points []dataPoint, now time.Time) Stats {
 				s.Mem[1] = p.mem
 			}
 		}
-		if delta <= 24*time.Hour {
+		if delta <= time.Hour {
 			if p.cpu > s.CPU[2] {
 				s.CPU[2] = p.cpu
 			}
 			if p.mem > s.Mem[2] {
 				s.Mem[2] = p.mem
+			}
+		}
+		if delta <= 24*time.Hour {
+			if p.cpu > s.CPU[3] {
+				s.CPU[3] = p.cpu
+			}
+			if p.mem > s.Mem[3] {
+				s.Mem[3] = p.mem
 			}
 		}
 	}
