@@ -1,14 +1,28 @@
 # gomon
 
-GO Monitoring Service for VM. The service collects CPU and memory usage of the
-host and exposes a `/stats` HTTP endpoint. The endpoint returns the maximum CPU
-percentage and memory usage (in MB) observed over the last 1 minute, 5 minutes,
-1 hour and 24 hours in the following format:
+GO Monitoring Service for VM. The service collects CPU, memory and disk usage of the
+host and exposes a `/stats` HTTP endpoint. The endpoint returns the maximum
+usage observed over the last 1 minute, 5 minutes, 1 hour and 24 hours.
+
+By default the endpoint returns JSON structured by VM name and metric:
 
 ```
 {
-  "cpu": [max1m, max5m, max1h, max24h],
-  "mem": [max1m, max5m, max1h, max24h]
+  "api": {
+    "cpu":  {"1m": 22, "5m": 15, "1h": 5, "24h": 2},
+    "mem":  {"1m": 512, "5m": 512, "1h": 256, "24h": 128},
+    "disk": {"1m": 10.5, "5m": 10.5, "1h": 9.8, "24h": 9.8}
+  }
+}
+```
+
+Setting `output_style=short` returns a compact array representation:
+
+```
+{
+  "cpu":  [max1m, max5m, max1h, max24h],
+  "mem":  [max1m, max5m, max1h, max24h],
+  "disk": [max1m, max5m, max1h, max24h]
 }
 ```
 
@@ -28,7 +42,8 @@ JSON body:
 {
   "name": "RNG",
   "cpu": [..],
-  "mem": [..]
+  "mem": [..],
+  "disk": [..]
 }
 ```
 

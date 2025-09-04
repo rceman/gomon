@@ -3,14 +3,16 @@ package app
 import "time"
 
 type dataPoint struct {
-	ts  time.Time
-	cpu float32
-	mem uint32
+	ts   time.Time
+	cpu  float32
+	mem  uint32
+	disk float32
 }
 
 type Stats struct {
-	CPU [4]float32 `json:"cpu"`
-	Mem [4]uint32  `json:"mem"`
+	CPU  [4]float32 `json:"cpu"`
+	Mem  [4]uint32  `json:"mem"`
+	Disk [4]float32 `json:"disk"`
 }
 
 type NodeStats struct {
@@ -29,6 +31,9 @@ func computeSummary(points []dataPoint, now time.Time) Stats {
 			if p.mem > s.Mem[0] {
 				s.Mem[0] = p.mem
 			}
+			if p.disk > s.Disk[0] {
+				s.Disk[0] = p.disk
+			}
 		}
 		if delta <= 5*time.Minute {
 			if p.cpu > s.CPU[1] {
@@ -36,6 +41,9 @@ func computeSummary(points []dataPoint, now time.Time) Stats {
 			}
 			if p.mem > s.Mem[1] {
 				s.Mem[1] = p.mem
+			}
+			if p.disk > s.Disk[1] {
+				s.Disk[1] = p.disk
 			}
 		}
 		if delta <= time.Hour {
@@ -45,6 +53,9 @@ func computeSummary(points []dataPoint, now time.Time) Stats {
 			if p.mem > s.Mem[2] {
 				s.Mem[2] = p.mem
 			}
+			if p.disk > s.Disk[2] {
+				s.Disk[2] = p.disk
+			}
 		}
 		if delta <= 24*time.Hour {
 			if p.cpu > s.CPU[3] {
@@ -52,6 +63,9 @@ func computeSummary(points []dataPoint, now time.Time) Stats {
 			}
 			if p.mem > s.Mem[3] {
 				s.Mem[3] = p.mem
+			}
+			if p.disk > s.Disk[3] {
+				s.Disk[3] = p.disk
 			}
 		}
 	}
