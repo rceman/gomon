@@ -41,7 +41,7 @@ func Run(config types.Config) {
 			}
 			mu.Lock()
 			now := time.Now()
-			history = append(history, dataPoint{ts: now, cpu: stats.CPUPerc, mem: stats.MemMB})
+			history = append(history, dataPoint{ts: now, cpu: stats.CPUPerc, mem: stats.MemMB, disk: float32(stats.DiskMB) / 1024})
 			cutoff := now.Add(-24 * time.Hour)
 			for len(history) > 0 && history[0].ts.Before(cutoff) {
 				history = history[1:]
@@ -61,6 +61,10 @@ func Run(config types.Config) {
 
 	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
 		outputFormat := r.URL.Query().Get("output_format")
+		outputStyle := r.URL.Query().Get("output_style")
+		if outputStyle == "" {
+			outputStyle = "default"
+		}
 		if outputFormat == "html" {
 			w.Header().Set("Content-Type", "text/html")
 		} else {
@@ -98,8 +102,15 @@ func Run(config types.Config) {
 				if outputFormat == "html" {
 					renderHTMLStats(w, statsMap)
 				} else {
-					if err := json.NewEncoder(w).Encode(statsMap); err != nil {
-						log.Printf("error encoding stats: %v", err)
+					if outputStyle == "short" {
+						if err := json.NewEncoder(w).Encode(statsMap); err != nil {
+							log.Printf("error encoding stats: %v", err)
+						}
+					} else {
+						out := formatStatsDefault(statsMap)
+						if err := json.NewEncoder(w).Encode(out); err != nil {
+							log.Printf("error encoding stats: %v", err)
+						}
 					}
 				}
 				return
@@ -108,8 +119,15 @@ func Run(config types.Config) {
 			if outputFormat == "html" {
 				renderHTMLStats(w, map[string]Stats{config.Name: local})
 			} else {
-				if err := json.NewEncoder(w).Encode(local); err != nil {
-					log.Printf("error encoding stats: %v", err)
+				if outputStyle == "short" {
+					if err := json.NewEncoder(w).Encode(local); err != nil {
+						log.Printf("error encoding stats: %v", err)
+					}
+				} else {
+					out := formatStatsDefault(map[string]Stats{config.Name: local})
+					if err := json.NewEncoder(w).Encode(out); err != nil {
+						log.Printf("error encoding stats: %v", err)
+					}
 				}
 			}
 		}
@@ -168,6 +186,7 @@ func renderHTMLStats(w http.ResponseWriter, statsMap map[string]Stats) {
 		fmt.Fprintln(w, "<tr><th></th><th>1m</th><th>5m</th><th>1h</th><th>24h</th></tr>")
 		fmt.Fprintf(w, "<tr><td>RAM</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>", s.Mem[0], s.Mem[1], s.Mem[2], s.Mem[3])
 		fmt.Fprintf(w, "<tr><td>CPU</td><td>%.2f</td><td>%.2f</td><td>%.2f</td><td>%.2f</td></tr>", s.CPU[0], s.CPU[1], s.CPU[2], s.CPU[3])
+		fmt.Fprintf(w, "<tr><td>Disk (GB)</td><td>%.2f</td><td>%.2f</td><td>%.2f</td><td>%.2f</td></tr>", s.Disk[0], s.Disk[1], s.Disk[2], s.Disk[3])
 		fmt.Fprintln(w, "</table>")
 	}
 	fmt.Fprintln(w, "</body></html>")
